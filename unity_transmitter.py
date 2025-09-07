@@ -54,7 +54,7 @@ def create_master(sock, endpoint="udp:0.0.0.0:14550", update_rate=10):
         master.wait_heartbeat(timeout=5)
         if master.target_system == 0:
             send_log(sock, "No real drone detected (system 0). Sending dummy data.", severity=1)
-            return None  # Use None to indicate dummy data
+            return None  # Dummy data
         send_log(sock, f"Heartbeat from system {master.target_system} component {master.target_component}", severity=3)
         master.mav.request_data_stream_send(
             master.target_system,
@@ -73,12 +73,12 @@ def create_master(sock, endpoint="udp:0.0.0.0:14550", update_rate=10):
 def update_drone_state(sock, master, drone_state):
 
     if master is None:
-        # Send dummy data
+        # summy data
         now = time.time()
         drone_state.update({
-            "x": random.uniform(-5, 5),
-            "y": random.uniform(-5, 5),
-            "z": random.uniform(0, 2),
+            "x": 3,
+            "y": 3,
+            "z": 5,
             "pitch": random.uniform(-0.1, 0.1),
             "roll": random.uniform(-0.1, 0.1),
             "yaw": random.uniform(-3.14, 3.14),
@@ -92,8 +92,6 @@ def update_drone_state(sock, master, drone_state):
             "timestamp": int(now * 1000)
         })
         return
-    # Otherwise, process real MAVLink messages as before
-
 
     msg = master.recv_match(blocking=False)
     if not msg:
@@ -160,20 +158,18 @@ def wait_for_camera(sock, retry_delay=5):
 
 
 def decode_tag(sock, tag_id, match_key, server_url):
-    # Step 1: Verify match_key
     try:
         verify_resp = requests.get(f"{server_url}/verify_match_key", params={"match_key": match_key}, timeout=2)
         if verify_resp.status_code == 404:
             send_log(sock, f"Invalid match_key: {match_key}", severity=1)  # Error
-            raise RuntimeError(f"Invalid match_key: {match_key}")
+            # raise RuntimeError(f"Invalid match_key: {match_key}")
         elif verify_resp.status_code != 200:
             send_log(sock, f"Error verifying match_key: {verify_resp.status_code}", severity=1)  # Error
-            raise RuntimeError(f"Error verifying match_key: {verify_resp.status_code}")
+            # raise RuntimeError(f"Error verifying match_key: {verify_resp.status_code}")
     except requests.exceptions.RequestException as e:
         send_log(sock, f"Could not reach the decoder server!", severity=1)  # Error
-        raise RuntimeError(f"Match key verification failed: {e}")
+        # raise RuntimeError(f"Match key verification failed: {e}")
 
-    # Step 2: Decode tag
     try:
         r = requests.get(f"{server_url}/decode", params={"tag_id": str(tag_id), "match_key": match_key}, timeout=2)
         r.raise_for_status()
@@ -183,10 +179,10 @@ def decode_tag(sock, tag_id, match_key, server_url):
             return data["points"]
         else:
             send_log(sock, f"Decoder error for tag {tag_id}: {data.get('error', 'Unknown error')}", severity=2)  # Warning
-            raise RuntimeError(f"Decoder error for tag {tag_id}: {data.get('error', 'Unknown error')}")
+            # raise RuntimeError(f"Decoder error for tag {tag_id}: {data.get('error', 'Unknown error')}")
     except requests.exceptions.RequestException as e:
         send_log(sock, f"Decoder server not reachable: {e}", severity=2)  # Warning
-        raise RuntimeError(f"Decoder server not reachable: {e}")
+        # raise RuntimeError(f"Decoder server not reachable: {e}")
 
 
 
