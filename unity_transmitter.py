@@ -51,7 +51,7 @@ def create_master(sock, endpoint="udp:0.0.0.0:14550", update_rate=10):
     time.sleep(1)
     master = mavutil.mavlink_connection(endpoint)
     try:
-        master.wait_heartbeat(timeout=5)
+        master.wait_heartbeat()
         # if master.target_system == 0:
         #     send_log(sock, "No real drone detected (system 0). Sending dummy data.", severity=1)
         #     return None  # Dummy data
@@ -241,7 +241,7 @@ def main(unity_host, unity_port, match_key, server_url):
                 }
                 sock.sendall((json.dumps(tag_msg) + "\n").encode("utf-8"))
 
-            time.sleep(0.05)
+            time.sleep(0.5)
 
     except KeyboardInterrupt:
         print("Stopping...")
